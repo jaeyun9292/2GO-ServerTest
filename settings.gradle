@@ -1,0 +1,2 @@
+rootProject.name = "MobisServer"
+include ':app'
