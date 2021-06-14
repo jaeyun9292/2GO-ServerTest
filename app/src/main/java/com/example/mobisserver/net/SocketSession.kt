@@ -64,7 +64,7 @@ object SocketSession {
             .filter { it.available() > 0 }
             .map {
                 var data = ""
-                for(i in 1..it.available()) {
+                for (i in 1..it.available()) {
                     if (isHeaderReceive) {
                         val msgReceiveHeaderBuff = ByteArray(1)
                         val bytesReceive: Int = it.read(msgReceiveHeaderBuff)
@@ -102,12 +102,11 @@ object SocketSession {
                         val msgRecvBodyBuff = ByteArray(contentLength)
                         var copyIndex = 0
 
-                        if (contentLength > 0)
-                        {
-                            val recvBuffer = ByteArray(if (contentLength >= 8192) 8192 else contentLength)
+                        if (contentLength > 0) {
+                            val recvBuffer =
+                                ByteArray(if (contentLength >= 8192) 8192 else contentLength)
                             var readLength: Int = recvBuffer.size
-                            while (copyIndex < contentLength)
-                            {
+                            while (copyIndex < contentLength) {
                                 val bytesRecv: Int = it.read(recvBuffer, 0, readLength)
                                 if (bytesRecv < 0) {
                                     throw java.lang.Exception("Disconnected from host")
@@ -138,7 +137,7 @@ object SocketSession {
                 }
 
                 data
-            }.subscribe{
+            }.subscribe {
                 dataSubject.onNext(it)
             }.let { disposables.add(it) }
     }

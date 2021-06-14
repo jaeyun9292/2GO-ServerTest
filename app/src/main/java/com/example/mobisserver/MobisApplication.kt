@@ -3,7 +3,6 @@ package com.example.mobisserver
 import android.app.Application
 import android.content.Context
 import android.util.DisplayMetrics
-import android.util.Log
 import com.anyractive.medroa.ev.pop.util.PreferenceUtil
 import com.uber.rxdogtag.RxDogTag
 import io.reactivex.exceptions.UndeliverableException
@@ -15,7 +14,7 @@ import java.util.*
 class MobisApplication : Application() {
     lateinit var context: Context
 
-    init{
+    init {
         instance = this
     }
 
@@ -50,10 +49,10 @@ class MobisApplication : Application() {
         var preShiftType = ""
         var light = 0F
         var isRotate = false
-        lateinit var density : DisplayMetrics
+        lateinit var density: DisplayMetrics
         private var timerTask: Timer? = null
 
-        fun applicationContext() : Context {
+        fun applicationContext(): Context {
             return instance!!.applicationContext
         }
 
@@ -70,7 +69,7 @@ class MobisApplication : Application() {
         setRxJavaEooroHandler()
 //        RxJavaPlugins.setErrorHandler { Log.w("APP#", it) }
 
-        prefs = PreferenceUtil(applicationContext)
+//        prefs = PreferenceUtil(applicationContext)
     }
 
     private fun setRxJavaEooroHandler() {
