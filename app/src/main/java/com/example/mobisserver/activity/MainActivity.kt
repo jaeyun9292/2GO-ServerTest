@@ -29,8 +29,8 @@ class MainActivity : AppCompatActivity() {
     var mServiceManager: ServiceManager? = null
     var isKill = false
     var isServerConnected = false
-    lateinit var ip : String
-    lateinit var port : String
+    lateinit var ip: String
+    lateinit var port: String
 
     companion object {
         lateinit var prefs: PreferenceUtil
@@ -58,18 +58,18 @@ class MainActivity : AppCompatActivity() {
                 port = binding.editPort.text.toString()
                 prefs.setString("ip", ip)
                 prefs.setString("port", port)
-                Log.e(TAG, "onCreate: isbinding: " + isbinding)
                 setBind()
                 isbinding = true
+                Log.e(TAG, "isbinding: " + isbinding)
             }
         }
 
         binding.stop.setOnClickListener {
             Log.e(TAG, "btn_stop_click: ")
             if (isbinding) {
-                Log.e(TAG, "onCreate: isbinding: " + isbinding)
                 setunBind()
                 isbinding = false
+                Log.e(TAG, "isbinding: " + isbinding)
             }
         }
 
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
 
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            Log.e("onServiceConnected: ", "")
+            Log.e("mServiceConnection", "onServiceConnected: ")
             mServiceManager = (service as ServiceManager.LocalBinder).getService()
             mServiceManager?.addListener(mServiceManagerListener)
             if (!isServerConnected) {
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
-            Log.e("onServiceDisConnected: ", "")
+            Log.e("mServiceConnection", "onServiceDisConnected: ")
             mServiceManager?.removeListener()
             mServiceManager = null
         }
@@ -194,7 +194,6 @@ class MainActivity : AppCompatActivity() {
         unbindService(
             mServiceConnection
         )
-
     }
 
     @SuppressLint("NewApi")
