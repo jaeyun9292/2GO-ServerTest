@@ -10,9 +10,9 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
         android:text="Ip"
         android:textSize="20sp"
-        android:layout_marginStart="3dp"
         app:layout_constraintBottom_toTopOf="@+id/editIp"
         app:layout_constraintStart_toStartOf="@+id/editIp" />
 
@@ -31,11 +31,11 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
         android:text="Port"
         android:textSize="20sp"
-        android:layout_marginStart="3dp"
         app:layout_constraintBottom_toTopOf="@+id/editPort"
-        app:layout_constraintStart_toStartOf="@+id/editPort"/>
+        app:layout_constraintStart_toStartOf="@+id/editPort" />
 
     <EditText
         android:id="@+id/editPort"
@@ -53,9 +53,9 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginStart="50dp"
+        android:layout_marginTop="50dp"
         android:backgroundTint="@color/purple_200"
         android:text="start"
-        android:layout_marginTop="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/stop"
         app:layout_constraintStart_toStartOf="parent"
@@ -66,13 +66,25 @@
         android:id="@+id/stop"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="50dp"
         android:backgroundTint="@color/purple_200"
         android:text="stop"
-        android:layout_marginTop="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/start"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="send"
+        android:layout_marginTop="30dp"
+        app:layout_constraintEnd_toEndOf="@+id/start"
+        app:layout_constraintStart_toStartOf="@+id/start"
+        app:layout_constraintTop_toBottomOf="@+id/start" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,7 +14,6 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
-import com.example.mobisserver.MobisApplication
 import com.example.mobisserver.R
 import com.example.mobisserver.activity.MainActivity
 import com.example.mobisserver.net.SocketSession
@@ -30,7 +29,6 @@ class ServiceManager : Service() {
     private var port = 0
     private val mBinder: IBinder = LocalBinder()
 
-
     companion object {
         var mListener: Listener? = null
     }
@@ -43,9 +41,6 @@ class ServiceManager : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d(logcat, "onCreate")
-
-
-
         startForegroundService()
     }
 
@@ -56,20 +51,6 @@ class ServiceManager : Service() {
         when (action) {
             "Start" -> {
                 onTcpConnect()
-
-
-            }
-            "Welcome" -> {
-                sendMessage(
-                    "api-command=status&api-action=welcome&api-method=post&sub-system-id=1",
-                    ""
-                )
-            }
-            "End" -> {
-                sendMessage(
-                    "api-command=status&api-action=attach&api-method=post&sub-system-id=1",
-                    "attach=1"
-                )
             }
         }
 
@@ -126,7 +107,6 @@ class ServiceManager : Service() {
         return mBinder
     }
 
-
     override fun onUnbind(intent: Intent?): Boolean {
         Log.d("servicesTest", "onUnbind")
         return super.onUnbind(intent)
@@ -143,9 +123,9 @@ class ServiceManager : Service() {
     }
 
     fun onTcpConnect() {
-        Log.d(logcat, "onTcpConnect")
-        ip = MobisApplication.prefs.getString("ip", "192.168.11.2")
-        port = MobisApplication.prefs.getString("port", "8181").toInt()
+        ip = MainActivity.prefs.getString("ip", "192.168.11.2")
+        port = MainActivity.prefs.getString("port", "8181").toInt()
+        Log.d(logcat, "onTcpConnect ip: " + ip + " port: " + port)
 
         if (SocketSession.socket == null) {
             Log.d(logcat, "Enter")
@@ -157,9 +137,7 @@ class ServiceManager : Service() {
         }
     }
 
-
     fun sendMessage(header: String, body: String) {
-//        Log.d(logcat, "Enter : header - $header\n body - $body")
         val headerBuilder = StringBuilder()
         headerBuilder.append(header)
 
@@ -170,7 +148,6 @@ class ServiceManager : Service() {
             val bodyBytes = body.toByteArray(charset("UTF-8"))
             headerBuilder.append("&content-length=" + bodyBytes.size)
         }
-
         val bodyBuilder = StringBuilder()
         bodyBuilder.append(body)
 
@@ -181,14 +158,6 @@ class ServiceManager : Service() {
         packetBuilder.append(bodyBuilder.toString())
 
         val packetData = packetBuilder.toString()
-//        Log.i(Tag,
-//            "TC [" + this.ip + ":" + this.port + "] Sending: " + if (packetData.length >= 1024) packetData.substring(
-//                0,
-//                1024
-//            ) + "..." else packetData
-//        )
-
-//        networkManager?.sendData(packetData)
         SocketSession.sendData(packetData)
     }
 
@@ -202,7 +171,6 @@ class ServiceManager : Service() {
             }
             .map {
                 if (mListener != null) {
-//                    Log.d(logcat, "it : $it")
                     mListener?.onReceviData(it)
                 } else {
                     it
@@ -215,15 +183,7 @@ class ServiceManager : Service() {
             .doOnError {
                 Log.e(logcat, "doOnError : ${it.printStackTrace()}")
             }
-            .subscribe {
-//                Log.d(logcat, "mListener : $mListener")
-//                if (mListener != null) {
-//
-//                } else
-//                {
-//                    Toast.makeText(this, "환영합니다", Toast.LENGTH_SHORT).show()
-//                }
-            }.let {
+            .subscribe {}.let {
                 disposables.add(it)
             }
     }
@@ -237,6 +197,4 @@ class ServiceManager : Service() {
                 mListener?.onConnected(it)
             }.let { disposables.add(it) }
     }
-
-
 }

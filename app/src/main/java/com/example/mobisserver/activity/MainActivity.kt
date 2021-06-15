@@ -14,23 +14,27 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.anyractive.medroa.ev.pop.util.PreferenceUtil
-import com.example.mobisserver.MobisApplication
-import com.example.mobisserver.OnFragmentInteractionListener
 import com.example.mobisserver.databinding.ActivityMainBinding
 import com.example.mobisserver.service.ServiceManager
-import org.json.JSONObject
-import kotlin.math.roundToInt
+import com.uber.rxdogtag.RxDogTag
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.plugins.RxJavaPlugins
+import java.io.IOException
+import java.net.SocketException
 
-class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
+class MainActivity : AppCompatActivity() {
     private val logTag = "MainActivity"
     var isbinding = false
     var serviceClass: Class<*>? = null
     var mServiceManager: ServiceManager? = null
-    var action: String? = null
-    var isSettingView = false
-    var speaker = "L"
     var isKill = false
+    var isServerConnected = false
+    lateinit var ip : String
+    lateinit var port : String
 
+    companion object {
+        lateinit var prefs: PreferenceUtil
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,19 +42,22 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
         setContentView(binding.root)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-//        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         hideSystemUI()
 
-        action = intent.action
+        RxDogTag.install()
+        setRxJavaEooroHandler()
 
         serviceClass = ServiceManager::class.java
 
-        MobisApplication.prefs = PreferenceUtil(applicationContext)
+        prefs = PreferenceUtil(applicationContext)
 
         binding.start.setOnClickListener {
             Log.e(TAG, "btn_start_click: ")
             if (!isbinding) {
+                ip = binding.editIp.text.toString()
+                port = binding.editPort.text.toString()
+                prefs.setString("ip", ip)
+                prefs.setString("port", port)
                 Log.e(TAG, "onCreate: isbinding: " + isbinding)
                 setBind()
                 isbinding = true
@@ -63,20 +70,21 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 Log.e(TAG, "onCreate: isbinding: " + isbinding)
                 setunBind()
                 isbinding = false
-
             }
         }
 
-
-        val ip = binding.editIp.text.toString()
-        val port = binding.editPort.text.toString()
-        MobisApplication.prefs.setString("ip", ip)
-        MobisApplication.prefs.setString("port", port)
-
-    }
-
-    override fun onFragmentInteraction(header: String, body: String) {
-        TODO("Not yet implemented")
+        binding.send.setOnClickListener {
+            Log.e(TAG, "btn_send_click: ")
+            if (isServerConnected) {
+                Log.e(TAG, "sendMessage")
+                Handler().postDelayed({
+                    mServiceManager?.sendMessage(   //EXAMPLE
+                        "api-command= YOURCODE1 &api-action= YOURCODE2 &api-method= YOURCODE3 &sub-system-id= YOURCODE4 ",
+                        "onoff=0"
+                    )
+                }, 500L)
+            }
+        }
     }
 
     private val mServiceConnection: ServiceConnection = object : ServiceConnection {
@@ -84,22 +92,8 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
             Log.e("onServiceConnected: ", "")
             mServiceManager = (service as ServiceManager.LocalBinder).getService()
             mServiceManager?.addListener(mServiceManagerListener)
-            if (!MobisApplication.isServerConnected) {
+            if (!isServerConnected) {
                 mServiceManager?.onTcpConnect()
-            }
-
-            if (action == "Start") {
-                Handler().postDelayed({
-                    mServiceManager?.sendMessage(
-                        "api-command=light&api-action=glass-transparency&api-method=post&sub-system-id=1",
-                        "onoff=0"
-                    )
-
-                    mServiceManager?.sendMessage(
-                        "api-command=setting&api-action=display-app&api-method=get&sub-system-id=1",
-                        ""
-                    )
-                }, 500L)
             }
         }
 
@@ -123,7 +117,7 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
                         idx = nextIdx
                     }
                 } else {
-//                    Log.e(logTag, data)
+                    Log.e(TAG, "onReceviData:" + data)
                 }
 
                 val header = data.split("§")[0]
@@ -133,266 +127,57 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 val action = api[1].split("=")[1]
                 val method = api[2].split("=")[1]
                 val result = body.split("&")
-                if (command == "ecorner") {
-                    when (method) {
-                        "push" -> {
-//                            Log.i(logTag, "command : $command / action : $action / method : $method")
-//                            Log.i(logTag, "body : $body")
-                            when (action) {
-                                "steering-position" -> {
-                                    if (MobisApplication.isAttach) {
-                                        val direction = result[1].split("=")[1]
-                                        pushSteeringPosition(direction)
-
-                                        mServiceManager?.sendMessage(
-                                            "api-command=status&api-action=steering-position&api-method=post&sub-system-id=1",
-                                            "direction=$direction"
-                                        )
-
-                                        mServiceManager?.sendMessage(
-                                            "api-command=light&api-action=light&api-method=post&sub-system-id=1",
-                                            "type=G"
-                                        )
-                                    }
-                                }
-
-                                "gear" -> {
-                                    if (MobisApplication.isAttach) {
-                                        val gear = result[1].split("=")[1]
-                                        if (gear != "") {
-                                            changeGear(gear)
-
-//                                            mServiceManager?.sendMessage(
-//                                                "api-command=ecorner&api-action=gear&api-method=post&sub-system-id=1",
-//                                                "gear=$gear"
-//                                            )
-                                        }
-                                    }
-                                }
-
-                                "lamp" -> {
-//                                    if(MobisApplication.isAttach) {
-//                                        val lamp = result[1].split("=")[1]
-//                                        val value = result[2].split("=")[1]
-//                                        when(lamp) {
-//                                            "turnleft" -> {
-//                                                if(value == "1") {
-//                                                    mServiceManager?.sendMessage(
-//                                                        "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
-//                                                        "level=0&dir=left"
-//                                                    )
-//                                                }
-//                                            }
-//                                            "turnright" -> {
-//                                                if(value == "1") {
-//                                                    mServiceManager?.sendMessage(
-//                                                        "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
-//                                                        "level=0&dir=right"
-//                                                    )
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    when (method) {
-                        "response" -> {
-                            val code = result[0].split("=")[1]
-                            if (code == "0") {
-                                if (action == "driving-safety") {
-                                    setDataSyn(action, result[2])
-                                } else {
-                                    if (result.size > 2) {
-                                        val values = ArrayList<String>()
-                                        for (i in 2 until result.size) {
-                                            values.add(result[i])
-                                        }
-
-                                        when (action) {
-                                            "display-app" -> {
-                                                if (!isSettingView && !MobisApplication.isAttach) {
-                                                    onFragmentInteraction(
-                                                        "api-command=status&api-action=attach&api-method=post&sub-system-id=1",
-                                                        "attach=1"
-                                                    )
-                                                    onFragmentInteraction(
-                                                        "api-command=light&api-action=light&api-method=post&sub-system-id=1",
-                                                        "type=D"
-                                                    )
-                                                }
-                                            }
-                                            "attach" -> {
-                                                val attach = result[2].split("=")[1]
-                                                if (attach == "1") {
-                                                    MobisApplication.isAttach = true
-                                                    onFragmentInteraction(
-                                                        "api-command=setting&api-action=profile&api-method=get&sub-system-id=1",
-                                                        ""
-                                                    )
-
-                                                    Handler().postDelayed({
-                                                        onFragmentInteraction(
-                                                            "api-command=setting&api-action=cluster&api-method=get&sub-system-id=1",
-                                                            ""
-                                                        )
-                                                    }, 500L)
-                                                } else {
-                                                    MobisApplication.isAttach = false
-                                                }
-                                            }
-                                        }
-
-                                        setDataSyn(action, values)
-                                    }
-                                }
-                            } else {
-                                Toast.makeText(
-                                    applicationContext,
-                                    "서버와 통신상태를 확인해 주세요.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-
-                        "push" -> {
-                            when (action) {
-                                "welcome" -> {
-
-                                }
-                                "attach" -> {
-                                    if (MobisApplication.isAttach) {
-                                        val navi = result[5].split("=")[1]
-                                        val jsonObject1 = JSONObject(navi)
-                                        var destination = jsonObject1.getString("destination")
-                                        var route = jsonObject1.getString("route")
-
-                                        if (destination == "null") {
-                                            destination = "0"
-                                        }
-                                        if (route == "null") {
-                                            route = "0"
-                                        }
-
-                                        setMapData(destination, route)
-
-                                        val climate = result[7].split("=")[1]
-                                        val jsonObject2 = JSONObject(climate)
-                                        val power = jsonObject2.getString("power_onoff")
-                                        val ac = jsonObject2.getString("ac_onoff")
-                                        val hot = jsonObject2.getString("hotwire_onoff")
-                                        val valve = jsonObject2.getString("valve")
-
-                                        MobisApplication.defroster = hot
-                                        MobisApplication.recirculation = valve
-
-                                        setInitClimateDate(power, ac, hot, valve)
-
-                                        val media = result[9].split("=")[1]
-                                        val jsonObject3 = JSONObject(media)
-                                        val type = jsonObject3.getString("type")
-                                        val value = jsonObject3.getString("value")
-
-                                        playMedia(type, value.toInt())
-
-                                        val volumePop = result[11].split("=")[1]
-                                        val volume = JSONObject(volumePop)
-                                        val vol = volume.getString("volume").toFloat()
-                                        MobisApplication.currentVol =
-                                            (((vol * 100).roundToInt() / 100f) / 6.6).roundToInt()
-                                        MobisApplication.isMute =
-                                            volume.getString("muteonoff") != "0"
-                                    }
-                                }
-                                "stt" -> {
-                                    if (MobisApplication.isAttach) {
-//                                    val id = result[0].split("=")[1]
-                                        val text = result[1].split("=")[1]
-                                        val direction = result[2].split("=")[1]
-                                        speaker = direction
-
-                                        if (text == "Hello mobi") {
-                                            MobisApplication.isMobi = true
-                                            receiveMobi(text, direction)
-                                        } else {
-                                            setSttDataSyn(text, direction)
-                                        }
-                                    }
-                                }
-
-                                "init" -> {
-                                    finish()
-//
-//                                    val setting =
-//                                        Intent(applicationContext, SettingActivity::class.java)
-//                                    setting.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-//                                    setting.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-//                                    setting.action = "End"
-//                                    applicationContext.startActivity(setting)
-                                }
-
-                                "steering-position" -> {
-                                    if (MobisApplication.isAttach) {
-                                        val direction = result[1].split("=")[1]
-                                        pushSteeringPosition(direction)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if (header == null) {
+                    Toast.makeText(
+                        applicationContext,
+                        "서버와 통신상태를 확인해 주세요.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
             override fun onConnected(isConnected: Boolean) {
                 when {
                     isConnected -> {
-                        MobisApplication.isServerConnected = true
+                        Log.e(TAG, "onConnected: true")
+                        isServerConnected = true
                     }
                     else -> {
-                        MobisApplication.isServerConnected = false
+                        Log.e(TAG, "onConnected: false")
+                        isServerConnected = false
                     }
                 }
             }
         }
 
-    open fun pushSteeringPosition(type: String) {
-
+    private fun setRxJavaEooroHandler() {
+        RxJavaPlugins.setErrorHandler { e ->
+            var error = e
+            if (error is UndeliverableException) {
+                error = e.cause
+            }
+            if (error is IOException || error is SocketException) {
+                // fine, irrelevant network problem or API that throws on cancellation
+                return@setErrorHandler
+            }
+            if (error is InterruptedException) {
+                // fine, some blocking code was interrupted by a dispose call
+                return@setErrorHandler
+            }
+            if (error is NullPointerException || error is IllegalArgumentException) {
+                // that's likely a bug in the application
+                Thread.currentThread().uncaughtExceptionHandler
+                    .uncaughtException(Thread.currentThread(), error)
+                return@setErrorHandler
+            }
+            if (error is IllegalStateException) {
+                // that's a bug in RxJava or in a custom operator
+                Thread.currentThread().uncaughtExceptionHandler
+                    .uncaughtException(Thread.currentThread(), error)
+                return@setErrorHandler
+            }
+        }
     }
-
-    open fun changeGear(gear: String) {
-
-    }
-
-    open fun setDataSyn(action: String, values: ArrayList<String>?) {
-
-    }
-
-    open fun setDataSyn(action: String, json: String) {
-
-    }
-
-    open fun setSttDataSyn(text: String, direction: String) {
-
-    }
-
-    open fun receiveMobi(text: String, direction: String) {
-
-    }
-
-    open fun setInitClimateDate(power: String, ac: String, hot: String, valve: String) {
-
-    }
-
-    open fun playMedia(type: String, value: Int) {
-
-    }
-
-    open fun setMapData(destination: String, route: String) {
-
-    }
-
 
     fun setBind() {
         Log.e(TAG, "setBind: ")
@@ -412,13 +197,13 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
 
     }
 
-
     @SuppressLint("NewApi")
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         hideSystemUI()
     }
 
+    @Suppress("DEPRECATION")
     fun hideSystemUI() {
         val decoView = window.decorView
         val uiOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -433,15 +218,11 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onDestroy() {
         super.onDestroy()
         Log.i(logTag, "onDestroy")
-
-        MobisApplication.isRotate = false
-
-        // Stop Cloud Speech API
         if (mServiceManager != null) {
             unbindService(mServiceConnection)
             mServiceManager?.removeListener()
             mServiceManager = null
-            MobisApplication.isServerConnected = false
+            isServerConnected = false
         }
 
         if (isKill) {
@@ -451,7 +232,3 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
         }
     }
 }
-
-
-
-
