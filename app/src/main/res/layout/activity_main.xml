@@ -6,6 +6,21 @@
     android:layout_height="match_parent"
     tools:context=".activity.MainActivity">
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.07" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.93" />
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -16,16 +31,18 @@
         app:layout_constraintBottom_toTopOf="@+id/editIp"
         app:layout_constraintStart_toStartOf="@+id/editIp" />
 
+
     <EditText
         android:id="@+id/editIp"
         android:layout_width="200dp"
         android:layout_height="50dp"
+        android:layout_marginTop="80dp"
         android:hint="Ip"
-        android:text="192.168.11.2"
-        app:layout_constraintBottom_toTopOf="@+id/start"
+        android:text="192.168.11.24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 
     <TextView
         android:id="@+id/textView"
@@ -37,54 +54,170 @@
         app:layout_constraintBottom_toTopOf="@+id/editPort"
         app:layout_constraintStart_toStartOf="@+id/editPort" />
 
+
     <EditText
         android:id="@+id/editPort"
         android:layout_width="200dp"
         android:layout_height="50dp"
+        android:layout_marginTop="30dp"
         android:hint="Port"
         android:text="8181"
-        app:layout_constraintBottom_toTopOf="@+id/start"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editIp" />
 
+
     <Button
-        android:id="@+id/start"
+        android:id="@+id/server_start"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginStart="50dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="220dp"
         android:backgroundTint="@color/purple_200"
-        android:text="start"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/stop"
+        android:text="server start"
+        app:layout_constraintEnd_toStartOf="@+id/server_stop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
 
     <Button
-        android:id="@+id/stop"
+        android:id="@+id/server_stop"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginTop="50dp"
         android:layout_marginEnd="50dp"
         android:backgroundTint="@color/purple_200"
-        android:text="stop"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="server stop"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/start"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/server_start"
+        app:layout_constraintTop_toTopOf="@+id/server_start" />
+
 
     <Button
-        android:id="@+id/send"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:id="@+id/rotate_start"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="15dp"
         android:backgroundTint="@color/purple_200"
-        android:text="send"
-        android:layout_marginTop="30dp"
-        app:layout_constraintEnd_toEndOf="@+id/start"
-        app:layout_constraintStart_toStartOf="@+id/start"
-        app:layout_constraintTop_toBottomOf="@+id/start" />
+        android:text="rotate start"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toEndOf="@+id/step_one"
+        app:layout_constraintStart_toStartOf="@+id/step_one"
+        app:layout_constraintTop_toBottomOf="@+id/server_start" />
 
+
+    <Button
+        android:id="@+id/rotate_end"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="rotate end"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toEndOf="@+id/step_two"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="@+id/step_two"
+        app:layout_constraintTop_toTopOf="@+id/rotate_start" />
+
+
+    <Button
+        android:id="@+id/step_one"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="step 1 "
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/step_two"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="@+id/guideline1"
+        app:layout_constraintTop_toBottomOf="@+id/rotate_start" />
+
+
+    <Button
+        android:id="@+id/step_two"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="step 2"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/step_three"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/step_one"
+        app:layout_constraintTop_toTopOf="@+id/step_one" />
+
+
+    <Button
+        android:id="@+id/step_three"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="step 3"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/step_two"
+        app:layout_constraintTop_toTopOf="@+id/step_one" />
+
+    <Button
+        android:id="@+id/stop"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="stop "
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/turn_left"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="@+id/guideline1"
+        app:layout_constraintTop_toBottomOf="@+id/step_one" />
+
+
+    <Button
+        android:id="@+id/turn_left"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="turn left"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/turn_right"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/stop"
+        app:layout_constraintTop_toTopOf="@+id/stop" />
+
+
+    <Button
+        android:id="@+id/turn_right"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="turn right"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/turn_left"
+        app:layout_constraintTop_toTopOf="@+id/stop" />
+
+    <Button
+        android:id="@+id/parking_start"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="parking start"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toEndOf="@+id/stop"
+        app:layout_constraintStart_toStartOf="@+id/stop"
+        app:layout_constraintTop_toBottomOf="@+id/stop" />
+
+    <Button
+        android:id="@+id/parking_end"
+        android:layout_width="85dp"
+        android:layout_height="80dp"
+        android:backgroundTint="@color/purple_200"
+        android:text="parking end"
+        android:textSize="11sp"
+        app:layout_constraintEnd_toEndOf="@+id/turn_left"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="@+id/turn_left"
+        app:layout_constraintTop_toTopOf="@+id/parking_start" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

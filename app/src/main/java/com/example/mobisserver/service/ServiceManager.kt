@@ -123,7 +123,7 @@ class ServiceManager : Service() {
     }
 
     fun onTcpConnect() {
-        ip = MainActivity.prefs.getString("ip", "192.168.11.2")
+        ip = MainActivity.prefs.getString("ip", "192.168.11.24")
         port = MainActivity.prefs.getString("port", "8181").toInt()
         Log.d(logcat, "onTcpConnect ip: " + ip + " port: " + port)
 

@@ -14,6 +14,8 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.anyractive.medroa.ev.pop.util.PreferenceUtil
+import com.example.mobisserver.OnFragmentInteractionListener
+import com.example.mobisserver.R
 import com.example.mobisserver.databinding.ActivityMainBinding
 import com.example.mobisserver.service.ServiceManager
 import com.uber.rxdogtag.RxDogTag
@@ -22,7 +24,8 @@ import io.reactivex.plugins.RxJavaPlugins
 import java.io.IOException
 import java.net.SocketException
 
-class MainActivity : AppCompatActivity() {
+@Suppress("DEPRECATION")
+class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentInteractionListener {
     private val logTag = "MainActivity"
     var isbinding = false
     var serviceClass: Class<*>? = null
@@ -31,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     var isServerConnected = false
     lateinit var ip: String
     lateinit var port: String
+    lateinit var binding: ActivityMainBinding
 
     companion object {
         lateinit var prefs: PreferenceUtil
@@ -38,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding: ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -48,41 +52,148 @@ class MainActivity : AppCompatActivity() {
         setRxJavaEooroHandler()
 
         serviceClass = ServiceManager::class.java
-
         prefs = PreferenceUtil(applicationContext)
 
-        binding.start.setOnClickListener {
-            Log.e(TAG, "btn_start_click: ")
-            if (!isbinding) {
-                ip = binding.editIp.text.toString()
-                port = binding.editPort.text.toString()
-                prefs.setString("ip", ip)
-                prefs.setString("port", port)
-                setBind()
-                isbinding = true
-                Log.e(TAG, "isbinding: " + isbinding)
-            }
-        }
+        binding.serverStart.setOnClickListener(this)
+        binding.serverStop.setOnClickListener(this)
+        binding.rotateStart.setOnClickListener(this)
+        binding.rotateEnd.setOnClickListener(this)
+        binding.stepOne.setOnClickListener(this)
+        binding.stepTwo.setOnClickListener(this)
+        binding.stepThree.setOnClickListener(this)
+        binding.stop.setOnClickListener(this)
+        binding.turnLeft.setOnClickListener(this)
+        binding.turnRight.setOnClickListener(this)
+        binding.parkingStart.setOnClickListener(this)
+        binding.parkingEnd.setOnClickListener(this)
+    }
 
-        binding.stop.setOnClickListener {
-            Log.e(TAG, "btn_stop_click: ")
-            if (isbinding) {
-                setunBind()
-                isbinding = false
-                Log.e(TAG, "isbinding: " + isbinding)
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.server_start -> {
+                // 소켓 연결 시작
+                Log.e(TAG, "btn_start_click: ")
+                if (!isbinding) {
+                    ip = binding.editIp.text.toString()
+                    port = binding.editPort.text.toString()
+                    prefs.setString("ip", ip)
+                    prefs.setString("port", port)
+                    setBind()
+                    isbinding = true
+                    Log.e(TAG, "isbinding: " + isbinding)
+                }
             }
-        }
 
-        binding.send.setOnClickListener {
-            Log.e(TAG, "btn_send_click: ")
-            if (isServerConnected) {
-                Log.e(TAG, "sendMessage")
+            R.id.server_stop -> {
+                // 소켓 연결 중지
+                Log.e(TAG, "btn_stop_click: ")
+                if (isbinding) {
+                    setunBind()
+                    isbinding = false
+                    Log.e(TAG, "isbinding: " + isbinding)
+                }
+            }
+
+            R.id.rotate_start -> {
+                // 180도 회전 시작
+                mServiceManager?.sendMessage(
+                    "api-command=ecorner&api-action=rotate-half&api-method=post&sub-system-id=1",
+                    "onoff=1"
+                )
+            }
+            R.id.rotate_end -> {
+                // 180도 회전 끝
+                mServiceManager?.sendMessage(
+                    "api-command=ecorner&api-action=rotate-half&api-method=post&sub-system-id=1",
+                    "onoff=0"
+                )
+            }
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            R.id.step_one -> {
+                // 1단계
+                mServiceManager?.sendMessage(
+                    "api-command=status&api-action=init&api-method=post&sub-system-id=1",
+                    ""
+                )
+            }
+            R.id.step_two -> {
+                // 2단계
+                mServiceManager?.sendMessage(
+                    "api-command=status&api-action=welcome&api-method=post&sub-system-id=1",
+                    ""
+                )
+            }
+            R.id.step_three -> {
+                // 3단계
+                onFragmentInteraction(
+                    "api-command=status&api-action=attach&api-method=post&sub-system-id=1",
+                    "attach=1"
+                )
+            }
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//            }R.id.step_one -> {
+//                // 1단계
+//                mServiceManager?.sendMessage(
+//                    "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
+//                    "level=1&dir=forward"
+//                )
+//            }
+//            R.id.step_two -> {
+//                // 2단계
+//                mServiceManager?.sendMessage(
+//                    "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
+//                    "level=2&dir="
+//                )
+//            }
+//            R.id.step_three -> {
+//                // 3단계
+//                mServiceManager?.sendMessage(
+//                    "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
+//                    "level=3&dir="
+//                )
+//            }
+            R.id.stop -> {
+                // 정차
                 Handler().postDelayed({
-                    mServiceManager?.sendMessage(   //EXAMPLE
-                        "api-command= YOURCODE1 &api-action= YOURCODE2 &api-method= YOURCODE3 &sub-system-id= YOURCODE4 ",
-                        "onoff=0"
+                    mServiceManager?.sendMessage(
+                        "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
+                        "level=0&dir=forward"
                     )
                 }, 500L)
+            }
+            R.id.turn_left -> {
+                // 좌회전
+                mServiceManager?.sendMessage(
+                    "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
+                    "level=2&dir=left"
+                )
+            }
+            R.id.turn_right -> {
+                // 우회전
+                mServiceManager?.sendMessage(
+                    "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
+                    "level=2&dir=right"
+                )
+            }
+            R.id.parking_start -> {
+                // 오토파킹 시작
+                Handler().postDelayed({
+                    mServiceManager?.sendMessage(
+                        "api-command=ecorner&api-action=parallel-park&api-method=post&sub-system-id=1",
+                        "onoff=1"
+                    )
+                }, 5000L)
+            }
+            R.id.parking_end -> {
+                // 오토파킹 끝
+                Handler().postDelayed({
+                    mServiceManager?.sendMessage(
+                        "api-command=ecorner&api-action=parallel-park&api-method=post&sub-system-id=1",
+                        "onoff=0"
+                    )
+                }, 18000L)
             }
         }
     }
@@ -104,9 +215,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 리스너
     private val mServiceManagerListener: ServiceManager.Listener =
         object : ServiceManager.Listener {
             override fun onReceviData(data: String?) {
+                Log.e(TAG, "onReceviData:" + data)
                 val maxLen = 2000 // 2000 bytes 마다 끊어서 출력
                 val len: Int = data!!.length
                 if (len > maxLen) {
@@ -116,10 +229,7 @@ class MainActivity : AppCompatActivity() {
                         nextIdx += maxLen
                         idx = nextIdx
                     }
-                } else {
-                    Log.e(TAG, "onReceviData:" + data)
                 }
-
                 val header = data.split("§")[0]
                 val body = data.split("§")[1]
                 val api = header.split("&")
@@ -127,6 +237,7 @@ class MainActivity : AppCompatActivity() {
                 val action = api[1].split("=")[1]
                 val method = api[2].split("=")[1]
                 val result = body.split("&")
+                Log.e(TAG, "onReceviData: header: " + header)
                 if (header == null) {
                     Toast.makeText(
                         applicationContext,
@@ -179,6 +290,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onFragmentInteraction(header: String, body: String) {
+        mServiceManager?.sendMessage(header, body)
+    }
+
     fun setBind() {
         Log.e(TAG, "setBind: ")
         bindService(
@@ -202,7 +317,6 @@ class MainActivity : AppCompatActivity() {
         hideSystemUI()
     }
 
-    @Suppress("DEPRECATION")
     fun hideSystemUI() {
         val decoView = window.decorView
         val uiOptions = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE

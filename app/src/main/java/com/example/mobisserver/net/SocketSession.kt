@@ -14,17 +14,16 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 object SocketSession {
-    var socket: Socket? = null
     const val Tag = "SocketSession"
+    private val disposables by lazy { CompositeDisposable() }
+
     private var isHeaderReceive = true
     private val headerBuff: ArrayList<Byte> = ArrayList()
     private var CRLF = "\r\n".toByteArray()
     private var isStop = false
-
+    var socket: Socket? = null
     var dataSubject: PublishSubject<String>
     var stateSubject: BehaviorSubject<Boolean>
-
-    private val disposables by lazy { CompositeDisposable() }
 
     init {
         Log.d(Tag, "init")
@@ -47,6 +46,7 @@ object SocketSession {
                 readData()
                 true
             } catch (e: IOException) {
+                Log.e("IOEception", e.toString())
                 false
             }.let {
                 stateSubject.onNext(it)
@@ -65,13 +65,13 @@ object SocketSession {
             .map {
                 var data = ""
                 for (i in 1..it.available()) {
+                    Log.e("ReadData", " ReadData")
                     if (isHeaderReceive) {
                         val msgReceiveHeaderBuff = ByteArray(1)
                         val bytesReceive: Int = it.read(msgReceiveHeaderBuff)
                         if (bytesReceive <= 0) {
                             throw Exception("Disconnected from host")
                         }
-
                         headerBuff.add(msgReceiveHeaderBuff[0])
 
                         if (headerBuff.size >= 4) {
@@ -149,10 +149,6 @@ object SocketSession {
 
     @SuppressLint("CheckResult")
     fun sendData(msg: String) {
-//        Log.d(Tag, "sendData : $msg")
-//        if(msg.contains("api-command=tuio"))  {
-//            Log.d(Tag, "sendData : $msg")
-//        }
         Observable.just(msg)
             .subscribeOn(Schedulers.io())
             .filter { socket != null }
