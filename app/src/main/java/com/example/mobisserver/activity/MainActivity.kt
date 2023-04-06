@@ -96,30 +96,28 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
 
             R.id.rotate_start -> {
                 // 180도 회전 시작
-                mServiceManager?.sendMessage(
+                onFragmentInteraction(
                     "api-command=ecorner&api-action=rotate-half&api-method=post&sub-system-id=1",
                     "onoff=1"
                 )
             }
             R.id.rotate_end -> {
                 // 180도 회전 끝
-                mServiceManager?.sendMessage(
+                onFragmentInteraction(
                     "api-command=ecorner&api-action=rotate-half&api-method=post&sub-system-id=1",
                     "onoff=0"
                 )
             }
-
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
             R.id.step_one -> {
                 // 1단계
-                mServiceManager?.sendMessage(
+                onFragmentInteraction(
                     "api-command=status&api-action=init&api-method=post&sub-system-id=1",
                     ""
                 )
             }
             R.id.step_two -> {
                 // 2단계
-                mServiceManager?.sendMessage(
+                onFragmentInteraction(
                     "api-command=status&api-action=welcome&api-method=post&sub-system-id=1",
                     ""
                 )
@@ -157,7 +155,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
             R.id.stop -> {
                 // 정차
                 Handler().postDelayed({
-                    mServiceManager?.sendMessage(
+                    onFragmentInteraction(
                         "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
                         "level=0&dir=forward"
                     )
@@ -165,14 +163,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
             }
             R.id.turn_left -> {
                 // 좌회전
-                mServiceManager?.sendMessage(
+                onFragmentInteraction(
                     "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
                     "level=2&dir=left"
                 )
             }
             R.id.turn_right -> {
                 // 우회전
-                mServiceManager?.sendMessage(
+                onFragmentInteraction(
                     "api-command=ecorner&api-action=speed&api-method=post&sub-system-id=1",
                     "level=2&dir=right"
                 )
@@ -180,7 +178,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
             R.id.parking_start -> {
                 // 오토파킹 시작
                 Handler().postDelayed({
-                    mServiceManager?.sendMessage(
+                    onFragmentInteraction(
                         "api-command=ecorner&api-action=parallel-park&api-method=post&sub-system-id=1",
                         "onoff=1"
                     )
@@ -189,7 +187,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
             R.id.parking_end -> {
                 // 오토파킹 끝
                 Handler().postDelayed({
-                    mServiceManager?.sendMessage(
+                    onFragmentInteraction(
                         "api-command=ecorner&api-action=parallel-park&api-method=post&sub-system-id=1",
                         "onoff=0"
                     )
@@ -237,14 +235,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
                 val action = api[1].split("=")[1]
                 val method = api[2].split("=")[1]
                 val result = body.split("&")
-                Log.e(TAG, "onReceviData: header: " + header)
-                if (header == null) {
-                    Toast.makeText(
-                        applicationContext,
-                        "서버와 통신상태를 확인해 주세요.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
             }
 
             override fun onConnected(isConnected: Boolean) {
@@ -278,13 +268,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
             if (error is NullPointerException || error is IllegalArgumentException) {
                 // that's likely a bug in the application
                 Thread.currentThread().uncaughtExceptionHandler
-                    .uncaughtException(Thread.currentThread(), error)
+                    ?.uncaughtException(Thread.currentThread(), error)
                 return@setErrorHandler
             }
             if (error is IllegalStateException) {
                 // that's a bug in RxJava or in a custom operator
                 Thread.currentThread().uncaughtExceptionHandler
-                    .uncaughtException(Thread.currentThread(), error)
+                    ?.uncaughtException(Thread.currentThread(), error)
                 return@setErrorHandler
             }
         }
@@ -294,7 +284,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
         mServiceManager?.sendMessage(header, body)
     }
 
-    fun setBind() {
+    private fun setBind() {
         Log.e(TAG, "setBind: ")
         bindService(
             Intent(this, serviceClass),
@@ -303,9 +293,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, OnFragmentIntera
         )
     }
 
-    fun setunBind() {
+    private fun setunBind() {
         Log.e(TAG, "setunBind: ")
-
         unbindService(
             mServiceConnection
         )

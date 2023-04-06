@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
+import androidx.core.view.ContentInfoCompat.Flags
 import com.example.mobisserver.R
 import com.example.mobisserver.activity.MainActivity
 import com.example.mobisserver.net.SocketSession
@@ -44,23 +45,14 @@ class ServiceManager : Service() {
         startForegroundService()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.e(TAG, "onStartCommand: ")
-        val action = intent?.action
-        Log.d(logcat, "onStartCommand : $action")
-        when (action) {
-            "Start" -> {
-                onTcpConnect()
-            }
-        }
-
-        return START_STICKY
-    }
-
     private fun startForegroundService() {
         Log.d(logcat, "startForegroundService")
         val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getActivity(this, 0, notificationIntent, 0)
+        }
 
         val remoteViews = RemoteViews(
             packageName,
@@ -125,7 +117,7 @@ class ServiceManager : Service() {
     fun onTcpConnect() {
         ip = MainActivity.prefs.getString("ip", "192.168.11.24")
         port = MainActivity.prefs.getString("port", "8181").toInt()
-        Log.d(logcat, "onTcpConnect ip: " + ip + " port: " + port)
+        Log.d(logcat, "onTcpConnect ip: $ip port: $port")
 
         if (SocketSession.socket == null) {
             Log.d(logcat, "Enter")
@@ -177,11 +169,11 @@ class ServiceManager : Service() {
                 }
             }
             .onErrorReturn {
-                Log.e(logcat, "onErrorReturn : ${it.printStackTrace()}")
+                Log.e(logcat, "onErrorReturn : $it")
                 readNetworkData()
             }
             .doOnError {
-                Log.e(logcat, "doOnError : ${it.printStackTrace()}")
+                Log.e(logcat, "doOnError : $it")
             }
             .subscribe {}.let {
                 disposables.add(it)
